@@ -6,4 +6,4 @@ go-fintual is a Go client library for accessing the [Fintual API](https://fintua
 
 To install the library, simply
 
-`go get github.com/ferueda/go-fintual/v1`
+`go get github.com/ferueda/go-fintual`

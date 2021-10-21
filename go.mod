@@ -1,3 +1,3 @@
-module github.com/ferueda/go-fintual/v1
+module github.com/ferueda/go-fintual
 
 go 1.17
