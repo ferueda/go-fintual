@@ -11,49 +11,54 @@ const (
 	accessTokenEndpoint = "/access_tokens"
 )
 
-type authResponse struct {
-	Data struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			Token string `json:"token"`
-		} `json:"attributes"`
-	} `json:"data"`
+type accessToken struct {
+	Type       string         `json:"type"`
+	Attributes authAttributes `json:"attributes"`
+}
+
+type authAttributes struct {
+	Token string `json:"token"`
+}
+
+type Credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // Authenticate tries to retrieve a user access token from the
 // Fintual access_tokens endpoint and sets it to the current Fintual client
 func (c *Client) Authenticate(email, password string) error {
-	creds := map[string]map[string]string{"user": {"email": email, "password": password}}
-	body, err := json.Marshal(creds)
+	reqData := struct {
+		User Credentials `json:"user"`
+	}{User: Credentials{Email: email, Password: password}}
+
+	reqBody, err := json.Marshal(reqData)
 	if err != nil {
 		return err
 	}
-	resp, err := c.client.Post(baseURL+accessTokenEndpoint, "application/json", bytes.NewBuffer(body))
+	resp, err := c.http.Post(baseURL+accessTokenEndpoint, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		switch resp.StatusCode {
-		case 401:
-			return errors.New("fitual auth failed - invalid credentials")
-		default:
-			return errors.New("fitual auth failed - unknown error")
-		}
+		return c.decodeError(resp)
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	var respObj authResponse
-	json.Unmarshal(data, &respObj)
+	var data struct {
+		Data accessToken `json:"data"`
+	}
+	json.Unmarshal(respBody, &data)
 
-	if respObj.Data.Type != "access_token" || len(respObj.Data.Attributes.Token) == 0 {
+	if data.Data.Type != "access_token" || len(data.Data.Attributes.Token) == 0 {
 		return errors.New("fitual auth failed - didn't get access token")
 	}
 
-	c.accessToken = respObj.Data.Attributes.Token
+	c.accessToken = data.Data.Attributes.Token
 	return nil
 }
