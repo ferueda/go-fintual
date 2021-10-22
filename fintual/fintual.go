@@ -61,4 +61,34 @@ func (c *Client) decodeError(resp *http.Response) error {
 	return fmt.Errorf("error %v: %s ", e.Code, e.Message)
 }
 
+func (c *Client) get(ctx context.Context, url string, result interface{}) error {
+	u, err := c.baseURL.Parse(url)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return c.decodeError(resp)
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(result)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
