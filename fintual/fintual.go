@@ -1,5 +1,5 @@
 // Package fintual provides utilties for interfacing
-// with the Fintual's API.
+// with the Fintual API.
 package fintual
 
 import (
