@@ -39,7 +39,8 @@ func (c *Client) Authenticate(ctx context.Context, email, password string) error
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", baseURL+accessTokenEndpoint, bytes.NewBuffer(reqBody))
+	url := c.baseURL.String() + accessTokenEndpoint
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
