@@ -2,9 +2,11 @@ package fintual
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 )
 
 const (
@@ -27,7 +29,7 @@ type Credentials struct {
 
 // Authenticate tries to retrieve a user access token from the
 // Fintual access_tokens endpoint and sets it to the current Fintual client
-func (c *Client) Authenticate(email, password string) error {
+func (c *Client) Authenticate(ctx context.Context, email, password string) error {
 	reqData := struct {
 		User Credentials `json:"user"`
 	}{User: Credentials{Email: email, Password: password}}
@@ -36,12 +38,19 @@ func (c *Client) Authenticate(email, password string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := c.http.Post(baseURL+accessTokenEndpoint, "application/json", bytes.NewBuffer(reqBody))
+
+	req, err := http.NewRequestWithContext(ctx, "POST", baseURL+accessTokenEndpoint, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.http.Do(req)
 	if err != nil {
 		return err
 	}
 
 	defer resp.Body.Close()
+
 	if resp.StatusCode >= 400 {
 		return c.decodeError(resp)
 	}
