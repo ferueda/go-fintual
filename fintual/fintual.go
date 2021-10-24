@@ -11,7 +11,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 	"time"
+
+	"github.com/google/go-querystring/query"
 )
 
 // Version is the version of this library.
@@ -39,9 +42,36 @@ func NewClient(httpClient *http.Client) *Client {
 	return &Client{http: httpClient, baseURL: baseURL}
 }
 
-// setAccessToken sets the given token to current Fintual client.
+// setAccessToken sets the given token to the current Fintual client.
 func (c *Client) setAccessToken(token string) {
 	c.accessToken = token
+}
+
+// ListParams specifies the optional parameters to various List methods.
+type ListParams struct {
+	Query string `url:"q,omitempty"` // For filtering results
+}
+
+// addParams adds the parameters in params as URL query parameters to s. params
+// must be a struct whose fields may contain "url" tags.
+func addParams(s string, params interface{}) (string, error) {
+	v := reflect.ValueOf(params)
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
+	}
+
+	u, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
+
+	qs, err := query.Values(params)
+	if err != nil {
+		return s, err
+	}
+
+	u.RawQuery = qs.Encode()
+	return u.String(), nil
 }
 
 // Error represents an error returned by the Fintual API.
