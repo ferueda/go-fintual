@@ -27,11 +27,20 @@ type Client struct {
 }
 
 // NewClient returns a new Fintual API client.
+// If a nil httpClient is provided, a new http.Client will be used.
 // To use API methods which require authentication, you must first call
 // the provided Authenticate method with valid credentials.
-func NewClient() *Client {
+func NewClient(httpClient *http.Client) *Client {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: time.Minute}
+	}
 	baseURL, _ := url.Parse(baseURL)
-	return &Client{http: &http.Client{Timeout: time.Minute}, baseURL: baseURL}
+	return &Client{http: httpClient, baseURL: baseURL}
+}
+
+// setAccessToken sets the given token to current Fintual client.
+func (c *Client) setAccessToken(token string) {
+	c.accessToken = token
 }
 
 // Error represents an error returned by the Fintual API.
