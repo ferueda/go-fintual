@@ -9,6 +9,12 @@ const (
 	conceptualAssetsEndpoint = "/conceptual_assets"
 )
 
+// ConceptualAssetsService handles communication with the
+// Conceptual Assets related methods of the Fintual API.
+//
+// Fintual API docs: https://fintual.cl/api-docs
+type ConceptualAssetsService service
+
 type ConceptualAsset struct {
 	ID         string                    `json:"id"`
 	Type       string                    `json:"type"`
@@ -32,30 +38,13 @@ type ConceptualAssetListParams struct {
 	Run  string `url:"run,omitempty"`  // For filtering results by run identifier
 }
 
-// GetConceptualAsset retrieves a single conceptual asset.
-//
-// Endpoint: GET /conceptual_assets/:id
-func (c *Client) GetConceptualAsset(ctx context.Context, id string) (*ConceptualAsset, error) {
-	url := fmt.Sprintf("%s/%s", c.baseURL.String()+conceptualAssetsEndpoint, id)
-	var ca struct {
-		Data *ConceptualAsset `json:"data"`
-	}
-
-	err := c.get(ctx, url, &ca)
-	if err != nil {
-		return nil, err
-	}
-
-	return ca.Data, nil
-}
-
-// ListConceptualAssets lists all conceptual assets. Receives a params argument
+// ListAll lists all conceptual assets. Receives a params argument
 // with Name and/or Run properties for filtering Conceptual Assets
 // by the Name and Run attributes.
 //
 // Endpoint: GET /conceptual_assets
-func (c *Client) ListConceptualAssets(ctx context.Context, params *ConceptualAssetListParams) ([]*ConceptualAsset, error) {
-	url := c.baseURL.String() + conceptualAssetsEndpoint
+func (s *ConceptualAssetsService) ListAll(ctx context.Context, params *ConceptualAssetListParams) ([]*ConceptualAsset, error) {
+	url := s.client.baseURL.String() + conceptualAssetsEndpoint
 	url, err := addParams(url, params)
 	if err != nil {
 		return nil, err
@@ -65,7 +54,7 @@ func (c *Client) ListConceptualAssets(ctx context.Context, params *ConceptualAss
 		Data []*ConceptualAsset `json:"data"`
 	}
 
-	err = c.get(ctx, url, &ca)
+	err = s.client.get(ctx, url, &ca)
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +62,42 @@ func (c *Client) ListConceptualAssets(ctx context.Context, params *ConceptualAss
 	return ca.Data, nil
 }
 
-// ListAssetProviderConceptualAssets lists all conceptual assets
-// of a given Asset Provider.
+// Get retrieves a single conceptual asset.
+//
+// Endpoint: GET /conceptual_assets/:id
+func (s *ConceptualAssetsService) Get(ctx context.Context, id string) (*ConceptualAsset, error) {
+	url := fmt.Sprintf("%s/%s", s.client.baseURL.String()+conceptualAssetsEndpoint, id)
+
+	var ca struct {
+		Data *ConceptualAsset `json:"data"`
+	}
+
+	err := s.client.get(ctx, url, &ca)
+	if err != nil {
+		return nil, err
+	}
+
+	return ca.Data, nil
+}
+
+// ListByAssetProvider lists all conceptual assets
+// of a given Asset Provider. Receives a params argument
+// with Name and/or Run properties for filtering Conceptual Assets
+// by the Name and Run attributes.
 //
 // Endpoint: GET /asset_providers/:id/conceptual_assets
-func (c *Client) ListAssetProviderConceptualAssets(ctx context.Context, id string) ([]*ConceptualAsset, error) {
-	url := fmt.Sprintf("%s/%s/%s", c.baseURL.String()+assetProvidersEndpoint, id, conceptualAssetsEndpoint)
+func (s *ConceptualAssetsService) ListByAssetProvider(ctx context.Context, id string, params *ConceptualAssetListParams) ([]*ConceptualAsset, error) {
+	url := fmt.Sprintf("%s/%s/%s", s.client.baseURL.String()+assetProvidersEndpoint, id, conceptualAssetsEndpoint)
+	url, err := addParams(url, params)
+	if err != nil {
+		return nil, err
+	}
+
 	var ca struct {
 		Data []*ConceptualAsset `json:"data"`
 	}
 
-	err := c.get(ctx, url, &ca)
+	err = s.client.get(ctx, url, &ca)
 	if err != nil {
 		return nil, err
 	}

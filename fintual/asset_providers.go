@@ -9,6 +9,12 @@ const (
 	assetProvidersEndpoint = "/asset_providers"
 )
 
+// AssetProvidersService handles communication with the
+// Asset Providers related methods of the Fintual API.
+//
+// Fintual API docs: https://fintual.cl/api-docs
+type AssetProvidersService service
+
 type AssetProvider struct {
 	ID         string                  `json:"id"`
 	Type       string                  `json:"type"`
@@ -19,16 +25,16 @@ type AssetProviderAttributes struct {
 	Name string `json:"name"`
 }
 
-// GetAssetProvider retrieves a single asset provider.
+// ListAll lists all asset providers.
 //
-// Endpoint: GET /asset_providers/:id
-func (c *Client) GetAssetProvider(ctx context.Context, id string) (*AssetProvider, error) {
-	url := fmt.Sprintf("%s/%s", c.baseURL.String()+assetProvidersEndpoint, id)
+// Endpoint: GET /asset_providers
+func (s *AssetProvidersService) ListAll(ctx context.Context) ([]*AssetProvider, error) {
+	url := s.client.baseURL.String() + assetProvidersEndpoint
 	var ap struct {
-		Data *AssetProvider `json:"data"`
+		Data []*AssetProvider `json:"data"`
 	}
 
-	err := c.get(ctx, url, &ap)
+	err := s.client.get(ctx, url, &ap)
 	if err != nil {
 		return nil, err
 	}
@@ -36,16 +42,16 @@ func (c *Client) GetAssetProvider(ctx context.Context, id string) (*AssetProvide
 	return ap.Data, nil
 }
 
-// ListAssetProviders lists all asset providers.
+// Get retrieves a single asset provider.
 //
-// Endpoint: GET /asset_providers
-func (c *Client) ListAssetProviders(ctx context.Context) ([]*AssetProvider, error) {
-	url := c.baseURL.String() + assetProvidersEndpoint
+// Endpoint: GET /asset_providers/:id
+func (s *AssetProvidersService) Get(ctx context.Context, id string) (*AssetProvider, error) {
+	url := fmt.Sprintf("%s/%s", s.client.baseURL.String()+assetProvidersEndpoint, id)
 	var ap struct {
-		Data []*AssetProvider `json:"data"`
+		Data *AssetProvider `json:"data"`
 	}
 
-	err := c.get(ctx, url, &ap)
+	err := s.client.get(ctx, url, &ap)
 	if err != nil {
 		return nil, err
 	}
