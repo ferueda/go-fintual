@@ -98,6 +98,10 @@ func (c *Client) newRequest(ctx context.Context, method, url string, body interf
 
 	return req, nil
 }
+
+// send makes a request to the API, the response body will be
+// unmarshalled into v.
+func (c *Client) send(req *http.Request, v interface{}) error {
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return err
@@ -105,11 +109,17 @@ func (c *Client) newRequest(ctx context.Context, method, url string, body interf
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return c.decodeError(resp)
+	}
+
 	if resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
-	if resp.StatusCode != http.StatusOK {
-		return c.decodeError(resp)
+
+	return json.NewDecoder(resp.Body).Decode(v)
+}
+
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(result)
