@@ -47,11 +47,6 @@ func (c *Client) setAccessToken(token string) {
 	c.accessToken = token
 }
 
-// ListParams specifies the optional parameters to various List methods.
-type ListParams struct {
-	Query string `url:"q,omitempty"` // For filtering results
-}
-
 // addParams adds the parameters in params as URL query parameters to s. params
 // must be a struct whose fields may contain "url" tags.
 func addParams(s string, params interface{}) (string, error) {

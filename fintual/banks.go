@@ -21,14 +21,14 @@ type BankAttributes struct {
 // BankListParams specifies the optional parameters to the
 // ListBanks method.
 type BankListParams struct {
-	ListParams
+	Query string `url:"q,omitempty"` // For filtering results
 }
 
-// ListBanks retrieves a list of all Banks. Receives an optional query param Query
-// which filter banks based on the bank's Name attribute.
+// ListBanks retrieves a list of all Banks. Receives a params argument
+// with a Query property for filtering Banks by the Name attribute.
 //
 // Endpoint: GET /banks
-func (c *Client) ListBanks(ctx context.Context, params *BankListParams) ([]Bank, error) {
+func (c *Client) ListBanks(ctx context.Context, params *BankListParams) ([]*Bank, error) {
 	url := c.baseURL.String() + banksEndpoint
 	url, err := addParams(url, params)
 	if err != nil {
@@ -36,7 +36,7 @@ func (c *Client) ListBanks(ctx context.Context, params *BankListParams) ([]Bank,
 	}
 
 	var banks struct {
-		Data []Bank `json:"data"`
+		Data []*Bank `json:"data"`
 	}
 
 	err = c.get(ctx, url, &banks)
