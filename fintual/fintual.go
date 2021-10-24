@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -128,7 +129,23 @@ func (c *Client) get(ctx context.Context, url string, v interface{}) error {
 		return err
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(result)
+	err = c.send(req, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// post makes a POST request to the given url, the response body will be
+// unmarshalled into v.
+func (c *Client) post(ctx context.Context, url string, body, v interface{}) error {
+	req, err := c.newRequest(ctx, "POST", url, body)
+	if err != nil {
+		return err
+	}
+
+	err = c.send(req, v)
 	if err != nil {
 		return err
 	}
