@@ -120,6 +120,12 @@ func (c *Client) send(req *http.Request, v interface{}) error {
 	return json.NewDecoder(resp.Body).Decode(v)
 }
 
+// get makes a GET request to the given url, the response body will be
+// unmarshalled into v.
+func (c *Client) get(ctx context.Context, url string, v interface{}) error {
+	req, err := c.newRequest(ctx, "GET", url, nil)
+	if err != nil {
+		return err
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(result)
