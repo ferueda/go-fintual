@@ -70,16 +70,34 @@ func (c *Client) decodeError(resp *http.Response) error {
 	return fmt.Errorf("error %v: %s ", e.Code, e.Message)
 }
 
-func (c *Client) get(ctx context.Context, url string, result interface{}) error {
+// newRequest creates a new API request with context. If specified,
+// the value pointed to by body is JSON encoded and included in the request body.
+func (c *Client) newRequest(ctx context.Context, method, url string, body interface{}) (*http.Request, error) {
 	u, err := c.baseURL.Parse(url)
 	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var buf io.ReadWriter
+	if body != nil {
+		buf = &bytes.Buffer{}
+		if err := json.NewEncoder(buf).Encode(body); err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	return req, nil
+}
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return err
