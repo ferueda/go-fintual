@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -27,11 +28,20 @@ type Client struct {
 }
 
 // NewClient returns a new Fintual API client.
+// If a nil httpClient is provided, a new http.Client will be used.
 // To use API methods which require authentication, you must first call
 // the provided Authenticate method with valid credentials.
-func NewClient() *Client {
+func NewClient(httpClient *http.Client) *Client {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: time.Minute}
+	}
 	baseURL, _ := url.Parse(baseURL)
-	return &Client{http: &http.Client{Timeout: time.Minute}, baseURL: baseURL}
+	return &Client{http: httpClient, baseURL: baseURL}
+}
+
+// setAccessToken sets the given token to current Fintual client.
+func (c *Client) setAccessToken(token string) {
+	c.accessToken = token
 }
 
 // Error represents an error returned by the Fintual API.
@@ -61,16 +71,38 @@ func (c *Client) decodeError(resp *http.Response) error {
 	return fmt.Errorf("error %v: %s ", e.Code, e.Message)
 }
 
-func (c *Client) get(ctx context.Context, url string, result interface{}) error {
+// newRequest creates a new API request with context. If specified,
+// the value pointed to by body is JSON encoded and included in the request body.
+func (c *Client) newRequest(ctx context.Context, method, url string, body interface{}) (*http.Request, error) {
 	u, err := c.baseURL.Parse(url)
 	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var buf io.ReadWriter
+	if body != nil {
+		buf = &bytes.Buffer{}
+		if err := json.NewEncoder(buf).Encode(body); err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	return req, nil
+}
+
+// send makes a request to the API, the response body will be
+// unmarshalled into v.
+func (c *Client) send(req *http.Request, v interface{}) error {
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return err
@@ -78,14 +110,42 @@ func (c *Client) get(ctx context.Context, url string, result interface{}) error 
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNoContent {
-		return nil
-	}
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return c.decodeError(resp)
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(result)
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
+	}
+
+	return json.NewDecoder(resp.Body).Decode(v)
+}
+
+// get makes a GET request to the given url, the response body will be
+// unmarshalled into v.
+func (c *Client) get(ctx context.Context, url string, v interface{}) error {
+	req, err := c.newRequest(ctx, "GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	err = c.send(req, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// post makes a POST request to the given url, the response body will be
+// unmarshalled into v.
+func (c *Client) post(ctx context.Context, url string, body, v interface{}) error {
+	req, err := c.newRequest(ctx, "POST", url, body)
+	if err != nil {
+		return err
+	}
+
+	err = c.send(req, v)
 	if err != nil {
 		return err
 	}
