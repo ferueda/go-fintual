@@ -24,10 +24,18 @@ const (
 	baseURL = "https://fintual.cl/api"
 )
 
+type service struct {
+	client *Client
+}
 type Client struct {
 	http        *http.Client // HTTP client used to communicate with the API.
 	baseURL     *url.URL     // Base URL for API requests
 	accessToken string       // Access token used for methods which require authentication
+
+	// Services used for talking to different parts of the Fintual API.
+	AssetProviders   *AssetProvidersService
+	Banks            *BanksService
+	ConceptualAssets *ConceptualAssetsService
 }
 
 // NewClient returns a new Fintual API client.
@@ -39,7 +47,13 @@ func NewClient(httpClient *http.Client) *Client {
 		httpClient = &http.Client{Timeout: time.Minute}
 	}
 	baseURL, _ := url.Parse(baseURL)
-	return &Client{http: httpClient, baseURL: baseURL}
+
+	c := &Client{http: httpClient, baseURL: baseURL}
+
+	c.AssetProviders = &AssetProvidersService{client: c}
+	c.Banks = &BanksService{client: c}
+	c.ConceptualAssets = &ConceptualAssetsService{client: c}
+	return c
 }
 
 // setAccessToken sets the given token to the current Fintual client.

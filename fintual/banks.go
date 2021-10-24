@@ -8,6 +8,12 @@ const (
 	banksEndpoint = "/banks"
 )
 
+// BanksService handles communication with the Banks related
+// methods of the Fintual API.
+//
+// Fintual API docs: https://fintual.cl/api-docs
+type BanksService service
+
 type Bank struct {
 	ID         string         `json:"id"`
 	Type       string         `json:"type"`
@@ -19,17 +25,17 @@ type BankAttributes struct {
 }
 
 // BankListParams specifies the optional parameters to the
-// ListBanks method.
+// BanksService.ListAll method.
 type BankListParams struct {
 	Query string `url:"q,omitempty"` // For filtering results
 }
 
-// ListBanks retrieves a list of all Banks. Receives a params argument
+// ListAll lists all Banks. Receives a params argument
 // with a Query property for filtering Banks by the Name attribute.
 //
 // Endpoint: GET /banks
-func (c *Client) ListBanks(ctx context.Context, params *BankListParams) ([]*Bank, error) {
-	url := c.baseURL.String() + banksEndpoint
+func (s *BanksService) ListAll(ctx context.Context, params *BankListParams) ([]*Bank, error) {
+	url := s.client.baseURL.String() + banksEndpoint
 	url, err := addParams(url, params)
 	if err != nil {
 		return nil, err
@@ -39,7 +45,7 @@ func (c *Client) ListBanks(ctx context.Context, params *BankListParams) ([]*Bank
 		Data []*Bank `json:"data"`
 	}
 
-	err = c.get(ctx, url, &banks)
+	err = s.client.get(ctx, url, &banks)
 	if err != nil {
 		return nil, err
 	}
