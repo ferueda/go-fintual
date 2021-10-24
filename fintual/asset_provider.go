@@ -19,13 +19,15 @@ type AssetProviderAttributes struct {
 	Name string `json:"name"`
 }
 
-// GetAssetProvider retrieves a single Fintual asset provider
+// GetAssetProvider retrieves a single asset provider.
+//
+// Endpoint: GET /asset_providers/:id
 func (c *Client) GetAssetProvider(ctx context.Context, id string) (*AssetProvider, error) {
+	url := fmt.Sprintf("%s/%s", c.baseURL.String()+assetProvidersEndpoint, id)
 	var ap struct {
 		Data *AssetProvider `json:"data"`
 	}
 
-	url := fmt.Sprintf("%s/%s", c.baseURL.String()+assetProvidersEndpoint, id)
 	err := c.get(ctx, url, &ap)
 	if err != nil {
 		return nil, err
@@ -34,13 +36,15 @@ func (c *Client) GetAssetProvider(ctx context.Context, id string) (*AssetProvide
 	return ap.Data, nil
 }
 
-// GetAssetProviders retrieves Fintual's asset providers list
-func (c *Client) GetAssetProviders(ctx context.Context) ([]*AssetProvider, error) {
+// ListAssetProviders lists all asset providers.
+//
+// Endpoint: GET /asset_providers
+func (c *Client) ListAssetProviders(ctx context.Context) ([]*AssetProvider, error) {
+	url := c.baseURL.String() + assetProvidersEndpoint
 	var ap struct {
 		Data []*AssetProvider `json:"data"`
 	}
 
-	url := c.baseURL.String() + assetProvidersEndpoint
 	err := c.get(ctx, url, &ap)
 	if err != nil {
 		return nil, err
