@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -42,8 +43,9 @@ type Client struct {
 
 // NewClient returns a new Fintual API client.
 // If a nil httpClient is provided, a new http.Client will be used.
-// To use API methods which require authentication, you must first call
-// the provided Authenticate method with valid credentials.
+//
+// To use API methods which require authentication, you must call
+// the Client.Authenticate method with valid credentials.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: time.Minute}
@@ -167,7 +169,7 @@ func (c *Client) send(req *http.Request, v interface{}) error {
 	return json.NewDecoder(resp.Body).Decode(v)
 }
 
-// get makes a GET request to the given url, the response body will be
+// get makes a GET request to the given url. The response body will be
 // unmarshalled into v.
 func (c *Client) get(ctx context.Context, url string, v interface{}) error {
 	req, err := c.newRequest(ctx, "GET", url, nil)
@@ -183,13 +185,38 @@ func (c *Client) get(ctx context.Context, url string, v interface{}) error {
 	return nil
 }
 
-// post makes a POST request to the given url, the response body will be
+// post makes a POST request to the given url. The response body will be
 // unmarshalled into v.
 func (c *Client) post(ctx context.Context, url string, body, v interface{}) error {
 	req, err := c.newRequest(ctx, "POST", url, body)
 	if err != nil {
 		return err
 	}
+
+	err = c.send(req, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getWithAuth makes a GET request with authentication credentials
+// to the given url. The response body will be unmarshalled into v.
+func (c *Client) getWithAuth(ctx context.Context, url string, v interface{}) error {
+	if c.accessToken == "" || c.userEmail == "" {
+		return errors.New("client not authenticated, call Client.Authenticate with valid credentials")
+	}
+
+	req, err := c.newRequest(ctx, "GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	q := req.URL.Query()
+	q.Add("user_email", c.userEmail)
+	q.Add("user_token", c.accessToken)
+	req.URL.RawQuery = q.Encode()
 
 	err = c.send(req, v)
 	if err != nil {
