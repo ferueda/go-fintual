@@ -27,9 +27,11 @@ const (
 type service struct {
 	client *Client
 }
+
 type Client struct {
 	http        *http.Client // HTTP client used to communicate with the API.
 	baseURL     *url.URL     // Base URL for API requests
+	userEmail   string       // User's email used for methods which require authentication
 	accessToken string       // Access token used for methods which require authentication
 
 	// Services used for talking to different parts of the Fintual API.
@@ -59,6 +61,11 @@ func NewClient(httpClient *http.Client) *Client {
 // setAccessToken sets the given token to the current Fintual client.
 func (c *Client) setAccessToken(token string) {
 	c.accessToken = token
+}
+
+// setUserEmail sets the given email to the current Fintual client.
+func (c *Client) setUserEmail(token string) {
+	c.userEmail = token
 }
 
 // addParams adds the parameters in params as URL query parameters to s. params
