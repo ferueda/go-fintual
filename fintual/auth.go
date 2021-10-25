@@ -43,6 +43,7 @@ func (c *Client) Authenticate(ctx context.Context, email, password string) error
 		return errors.New("fitual auth failed - didn't get access token")
 	}
 
+	c.setUserEmail(email)
 	c.setAccessToken(data.Data.Attributes.Token)
 	return nil
 }
