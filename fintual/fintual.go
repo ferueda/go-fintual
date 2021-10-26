@@ -40,6 +40,7 @@ type Client struct {
 	Banks            *BanksService
 	ConceptualAssets *ConceptualAssetsService
 	Goals            *GoalsService
+	RealAssets       *RealAssetsService
 }
 
 // NewClient returns a new Fintual API client.
@@ -59,6 +60,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Banks = &BanksService{client: c}
 	c.ConceptualAssets = &ConceptualAssetsService{client: c}
 	c.Goals = &GoalsService{client: c}
+	c.RealAssets = &RealAssetsService{client: c}
 	return c
 }
 
