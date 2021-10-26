@@ -62,7 +62,7 @@ func (s *ConceptualAssetsService) ListAll(ctx context.Context, params *Conceptua
 	return ca.Data, nil
 }
 
-// Get retrieves a single conceptual asset.
+// Get retrieves a single Conceptual Asset.
 //
 // Endpoint: GET /conceptual_assets/:id
 func (s *ConceptualAssetsService) Get(ctx context.Context, id string) (*ConceptualAsset, error) {
@@ -80,7 +80,7 @@ func (s *ConceptualAssetsService) Get(ctx context.Context, id string) (*Conceptu
 	return ca.Data, nil
 }
 
-// ListByAssetProvider lists all conceptual assets
+// ListByAssetProvider lists all Conceptual Assets
 // of a given Asset Provider. Receives a params argument
 // with Name and/or Run properties for filtering Conceptual Assets
 // by the Name and Run attributes.

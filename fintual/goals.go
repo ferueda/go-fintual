@@ -55,7 +55,7 @@ type Investment struct {
 }
 
 // ListAll lists all Goals for the authenticated user.
-// Requires authentication by calling Client.Authenticate first.
+// Requires authentication by calling Client.Authenticate.
 //
 // Endpoint: GET /goals
 func (s *GoalsService) ListAll(ctx context.Context) ([]*Goal, error) {
@@ -73,7 +73,7 @@ func (s *GoalsService) ListAll(ctx context.Context) ([]*Goal, error) {
 }
 
 // Get retrieves a specific goal.
-// Requires authentication by calling Client.Authenticate first.
+// Requires authentication by calling Client.Authenticate.
 //
 // Endpoint: GET /goals/:id
 func (s *GoalsService) Get(ctx context.Context, id string) (*Goal, error) {
