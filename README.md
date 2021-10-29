@@ -49,29 +49,29 @@ err := client.Authenticate(ctx, "email@email.com", "validPassword")
 ## Coverage
 
 ### Auth
-* POST /v1/access_token
+* POST /access_token
 
 ### Asset Providers
-* GET /v1/asset_providers
-* GET /v1/asset_providers/:id
-* GET /v1/asset_providers/:id/conceptual_assets
+* GET /asset_providers
+* GET /asset_providers/:id
+* GET /asset_providers/:id/conceptual_assets
 
 ### Banks
-* GET /v1/banks
+* GET /banks
 
 ### Conceptual Assets
-* GET /v1/conceptual_assets
-* GET /v1/conceptual_assets/:id
-* GET /v1/conceptual_assets/:id/real_assets
+* GET /conceptual_assets
+* GET /conceptual_assets/:id
+* GET /conceptual_assets/:id/real_assets
 
 ### Goals
-* GET /v1/goals
-* GET /v1/goals/:id
+* GET /goals
+* GET /goals/:id
 
 ### Real Assets
-* GET /v1/real_assets/:id
-* GET /v1/real_assets/:id/days
-* GET /v1/real_assets/:id/expense_ratio
+* GET /real_assets/:id
+* GET /real_assets/:id/days
+* GET /real_assets/:id/expense_ratio
 
 ## How to Contribute
 
